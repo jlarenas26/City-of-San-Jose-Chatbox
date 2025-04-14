@@ -1,0 +1,51 @@
+import streamlit as st
+import openai
+import os
+
+# Load API Key
+openai.api_key = os.getenv("OPENAI_API_KEY", "")
+
+# Streamlit UI
+st.title("📬 San Jose Grant Chatbox")
+st.write("Ask me anything about grants offered by the City of San Jose.")
+
+# Chat input
+user_question = st.text_input("Your question:")
+
+# System instructions
+system_prompt = """
+You are a smart, friendly, and helpful assistant who specializes in the City of San Jose’s grant programs. 
+
+Your job is to answer any question someone might have about grants offered by the City of San Jose — including but not limited to:
+- What grants are availablestre
+- How to apply
+- Who qualifies
+- Deadlines
+- Required documents
+- Where to get more info
+- Grant renewal, reporting, and usage guidelines
+
+If the question is unclear or outside the scope of public information, respond helpfully and suggest the user check the City’s official grant portal at https://www.sanjoseca.gov/grants or contact the City Grants Office.
+
+Use a professional but approachable tone. Keep answers under 100 words, and assume the user has no prior knowledge of government grants.
+"""
+
+def get_gpt_response(prompt):
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.6,
+            max_tokens=200
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"❌ Error: {e}"
+
+# Show response
+if user_question:
+    reply = get_gpt_response(user_question)
+    st.markdown(f"**Answer:** {reply}")
