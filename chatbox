@@ -1,51 +1,134 @@
 import streamlit as st
 import openai
-import os
+import datetime
+from PIL import Image
 
-# Load API Key
-openai.api_key = os.getenv("OPENAI_API_KEY", "")
+# Set page config
+st.set_page_config(page_title="City of San Jose Grants: Parks, Recreations, & Neighborhood Services", layout="wide")
 
-# Streamlit UI
-st.title("📬 San Jose Grant Chatbox")
-st.write("Ask me anything about grants offered by the City of San Jose.")
+# Sidebar Logo
+logo = Image.open("citylogo.png")
+with st.sidebar:
+    st.image(logo, width=300, caption="Learn More Here: https://www.sanjoseca.gov/home")
 
-# Chat input
-user_question = st.text_input("Your question:")
+# OpenAI Key Setup
+openai.api_key = "Official API HERE"
 
-# System instructions
-system_prompt = """
-You are a smart, friendly, and helpful assistant who specializes in the City of San Jose’s grant programs. 
+# Theme
+st.markdown("""
+    <style>
+        html, body, [class*="css"] { background-color: #FBE7D3 !important; color: #000000 !important; }
+        .main, .block-container { background-color: #FBE7D3 !important; }
+        h1, h2, h3, h4 { color: #D64016 !important; font-weight: 800; }
+        label { color: #000000 !important; font-weight: 600; }
+        ::placeholder { color: #000000 !important; opacity: 1 !important; }
+        .stTextInput>div>div>input,
+        .stTextArea textarea,
+        .stNumberInput input {
+            background-color: #fff7f0 !important; color: #000000 !important;
+        }
+        section[data-testid="stFileUploader"] {
+            background-color: white !important;
+            color: #000000 !important;
+            border: 1px solid #D64016 !important;
+            border-radius: 10px !important;
+            padding: 1rem !important;
+        }
+        section[data-testid="stFileUploader"] button {
+            background-color: #D64016 !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-weight: 600;
+        }
+        .stButton>button {
+            background-color: #D64016 !important;
+            color: white !important;
+            font-weight: bold;
+            border-radius: 12px;
+            padding: 0.6rem 1.2rem;
+            font-size: 16px;
+            border: none;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
-Your job is to answer any question someone might have about grants offered by the City of San Jose — including but not limited to:
-- What grants are availablestre
-- How to apply
-- Who qualifies
-- Deadlines
-- Required documents
-- Where to get more info
-- Grant renewal, reporting, and usage guidelines
+# Title
+st.title("City of San Jose Grants: Parks, Recreations, & Neighborhood Services")
 
-If the question is unclear or outside the scope of public information, respond helpfully and suggest the user check the City’s official grant portal at https://www.sanjoseca.gov/grants or contact the City Grants Office.
-
-Use a professional but approachable tone. Keep answers under 100 words, and assume the user has no prior knowledge of government grants.
-"""
-
-def get_gpt_response(prompt):
+# Grant Writing Assistant
+st.subheader("Grant Writing Feedback Assistant")
+st.write("Review and improve grant application responses.")
+question = st.text_input("Enter Draft Here:")
+if question:
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt}
+                {"role": "system", "content": "You are a grant writing assistant. Analyze the following grant application answer and provide helpful, specific suggestions on how the applicant can improve their writing. Look for ways to: Make the answer more specific or concrete. Improve clarity and grammar. Add examples or measurable outcomes if missing. Maintain a professional tone appropriate for grant applications."},
+                {"role": "user", "content": question}
             ],
             temperature=0.6,
             max_tokens=200
         )
-        return response.choices[0].message.content.strip()
+        answer = response.choices[0].message.content.strip()
+        st.markdown(f"**Answer:** {answer}")
     except Exception as e:
-        return f"❌ Error: {e}"
+        st.error(f"❌ GPT Error: {e}")
 
-# Show response
-if user_question:
-    reply = get_gpt_response(user_question)
-    st.markdown(f"**Answer:** {reply}")
+# Grant Application Form - Core Info
+st.markdown("---")
+st.subheader("Safe Summer Initiative Grant Application (SSIG)")
+st.write("Fill out and submit your grant application below. (Applications due via WebGrants)")
+
+name = st.text_input("Full Name")
+organization = st.text_input("Organization (if applicable)")
+email = st.text_input("Email Address")
+phone = st.text_input("Phone Number")
+project_title = st.text_input("Project Title")
+address = st.text_input("Address")
+target = st.text_input("Projected Target Population(s) To Be Served")
+age = st.text_input("Projected Age Range of Participants")
+
+# Narrative Questions
+st.markdown("---")
+st.subheader(" Narrative Questions")
+st.write("Please provide the following information about your agency. Please respond to each question in detail. Complete responses to each narrative question are typically two (2) to five (5) paragraphs in length. Responses are capped at 2,500 characters. Please note that there is no direct correlation between WebGrants character counts and word processing program character counts, so please plan accordingly.It is strongly recommended that applicants first draft responses in a word processing application, then copy, paste, and enter these responses into WebGrants. While spelling and grammar are not scored directly,responses should be readable and adequately address all parts of the following questions:")
+
+st.markdown("### Agency Mission")
+agency_mission = st.text_area("1. What is your agency’s mission and how does it align with the mission and vision of the SSIG program?", height=200)
+mission_alignment = st.text_area("2. Please explain how your proposed program will further the mission of your agency.", height=200)
+
+st.markdown("### Outreach & Engagement")
+outreach_plan = st.text_area("3. How does your agency plan to outreach to the proposed Target Population and keep them engaged throughout your summer program?", height=200)
+risk_assessment = st.text_area("4. How will you assess the risk factors for each participant?", height=200)
+
+st.markdown("### Agency Experience")
+experience = st.text_area("5. What is your agency’s experience providing the proposed services? Please include number of years serving the Target Population.", height=200)
+staffing_model = st.text_area("6. Describe your staffing model for the proposed program. How will you ensure staff and/or volunteers are in place by the start date?", height=200)
+
+st.markdown("### Outcome & Evaluation")
+outcomes = st.text_area("7. What are the participant outcomes of your proposed program? Describe how you will evaluate the program's effectiveness.", height=200)
+success_or_plan = st.text_area("8. If you have implemented this program before, describe its past success. If new, explain how it will be implemented effectively.", height=200)
+
+st.markdown("### Proposed Services")
+proposed_services = st.text_area("9. What service(s) is your agency proposing to provide? Be sure to include whether these are new or expansions of existing programs.", height=200)
+
+st.markdown("##### Service Table Data")
+activity_name = st.text_input("a. Activity name")
+activity_description = st.text_area("b. Description of activity", height=100)
+activity_location = st.text_input("c. Location of each activity")
+num_participants = st.number_input("d. Number of unduplicated participants", min_value=0)
+avg_per_session = st.number_input("e. Average participants per session", min_value=0)
+num_sessions = st.number_input("f. Number of sessions", min_value=0)
+session_hours = st.number_input("g. Hours per session", min_value=0.0, format="%.1f")
+
+units_of_service = avg_per_session * num_sessions * session_hours
+st.markdown(f"🔢 **Calculated Units of Service (UOS):** `{units_of_service:.2f}`")
+
+st.markdown("### Proposed Budget")
+budget_justification = st.text_area("9. Explain how your budget meets the required criteria (ratio of direct/indirect costs, alignment with service outputs, etc.)", height=200)
+
+# Final Submit Button
+if st.button("Submit Entire Application"):
+    st.success("🎉 Your full grant application has been submitted!")
